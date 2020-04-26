@@ -10,5 +10,6 @@ express-handlebars
 mongoose
 cheerio
 axios
+morgan
 
 Heroku:
