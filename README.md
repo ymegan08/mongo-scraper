@@ -10,7 +10,7 @@ express-handlebars,
 mongoose, 
 cheerio, 
 axios, 
-morgan, 
+morgan 
 
 Heroku: https://mongo-scraper-0308.herokuapp.com/
 
