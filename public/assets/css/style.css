@@ -1,3 +1,67 @@
 body{
     font-family: 'Baloo Bhaina 2', cursive;
 }
+
+.col-md-12.jumbotron{
+    background-color: #e4fad7;
+    border-radius: 15px;
+}
+
+.panel.panel-default{
+    background-color: #ffedfb;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.save, .addNote, .newNote{
+    background-color: #fab9ea;
+    border-color: #fab9ea;
+}
+
+.save:hover, .addNote:hover, .newNote:hover{
+    background-color:#ff85e1;
+    border-color: #ff85e1;
+}
+
+.save:active, .save:focus, .save:active:focus,
+.addNote:active, .addNote:focus, .addNote:active:focus,
+.newNote:active, .newNote:focus, .newNote:active:focus{
+    background-color: #fab9ea !important;
+    border-color: #fab9ea !important;
+    box-shadow: none !important;
+}
+
+button[type="button"].close{
+    margin-left: 0px !important;
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+}
+
+#scrape{
+    background-color: #94de68;
+    border-color: #94de68;
+}
+
+#scrape:hover, #scrape:hover, #scrape:hover{
+    background-color:#64c928;
+    border-color: #64c928;
+}
+
+#scrape:active, #scrape:focus, #scrape:active:focus{
+    background-color: #94de68 !important;
+    border-color: #94de68 !important;
+    box-shadow: none !important;
+}
+
+.deleteNote{
+    padding-top: 3px;
+    padding-bottom: 0px;
+    padding-right: 7px;
+    padding-left: 6px;
+    margin-right: 20px;
+}
+
+p[class="previousNotes"]{
+    font-size: 20px;
+}
