@@ -1,10 +1,9 @@
-require("newrelic");
 var express = require("express");
 var logger = require("morgan");
 var mongoose = require("mongoose");
-var Handlebars = require('handlebars');
+require('handlebars');
 var exphbs = require("express-handlebars");
-const {allowInsecurePrototypeAccess} = require('@handlebars/allow-prototype-access');
+//const {allowInsecurePrototypeAccess} = require('@handlebars/allow-prototype-access');
 
 // Require all models
 var db = require("./models");
@@ -29,7 +28,7 @@ app.use(express.static("public"));
 app.engine("handlebars", exphbs({
     defaultLayout: "main",
     partialsDir: "./views/layouts/partials",
-    handlebars: allowInsecurePrototypeAccess(Handlebars)
+    //handlebars: allowInsecurePrototypeAccess(Handlebars)
 }));
 app.set("view engine", "handlebars");
 
@@ -41,7 +40,7 @@ mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
 
 // MAIN PAGE
 app.get("/", function(req,res){
-    db.Article.find({"saved": false}, function(err, data){
+    db.Article.find({"saved": false}).lean().exec(function(err, data){
         var hbsObj = {
             article: data
         };
@@ -51,7 +50,7 @@ app.get("/", function(req,res){
 });
 
 app.get("/saved", function(req,res){
-    db.Article.find({"saved": true}).populate("note").exec(function(err, data){
+    db.Article.find({"saved": true}).populate("note").lean().exec(function(err, data){
         var hbsObj = {
             article: data
         };
@@ -62,7 +61,6 @@ app.get("/saved", function(req,res){
 
 // SCRAPE
 app.get("/scrape", function(req, res){
-
     // Grab body of html with axios
     axios.get("https://www.nytimes.com/").then(function(response){
         // Load into cheerio and save it to $ for shorthand selector
