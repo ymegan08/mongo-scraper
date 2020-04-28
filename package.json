@@ -28,5 +28,7 @@
     "mongoose": "^5.9.10",
     "morgan": "^1.10.0",
     "request": "^2.88.2"
-  }
+  },
+  "main": "server.js",
+  "devDependencies": {}
 }
