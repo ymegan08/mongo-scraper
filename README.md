@@ -12,7 +12,7 @@ cheerio
 axios
 morgan
 
-Heroku:
+Heroku: https://mongo-scraper-0308.herokuapp.com/
 
 ## App Demo
 ![Home Page](./public/assets/img/home.png)
