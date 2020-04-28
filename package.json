@@ -29,5 +29,9 @@
   },
   "devDependencies": {
     "handlebars": "^4.7.6"
+  },
+  "engines": {
+    "node": "13.7.0",
+    "npm": "6.13.6"
   }
 }
