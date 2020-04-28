@@ -13,3 +13,9 @@ axios
 morgan
 
 Heroku:
+
+## App Demo
+![Home Page](./public/assets/img/home.png)
+![Saved Page](./public/assets/img/saved.png)
+![Add Note](./public/assets/img/addnote.png)
+![Previous Notes](./public/assets/img/prevnote.png)
