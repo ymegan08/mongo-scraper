@@ -1,16 +1,18 @@
 var express = require("express");
 var logger = require("morgan");
 var mongoose = require("mongoose");
+var Handlebars = require('handlebars');
 var exphbs = require("express-handlebars");
+const {allowInsecurePrototypeAccess} = require('@handlebars/allow-prototype-access');
+
+// Require all models
+var db = require("./models");
 
 // Our scraping tools
 var axios = require("axios");
 var cheerio = require("cheerio");
 
-// Require all models
-var db = require("./models");
-
-var PORT = process.env.PORT || 3000;
+var PORT = process.env.PORT || 3030;
 
 // Initialize Express
 var app = express();
@@ -23,74 +25,66 @@ app.use(express.json());
 // Make public a static folder
 app.use(express.static("public"));
 // Connect handlebars
-app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.engine("handlebars", exphbs({
+    defaultLayout: "main",
+    partialsDir: "./views/layouts/partials",
+    handlebars: allowInsecurePrototypeAccess(Handlebars)
+}));
 app.set("view engine", "handlebars");
 
 // If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
-mongoose.connect(MONGODB_URI);
+mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true});
 
 ///////////////////////////////////////////////// ROUTES
 
 // MAIN PAGE
 app.get("/", function(req,res){
-    db.Article.find({ "saved": false}, function(err, data){
-        var viewObj = {
+    db.Article.find({"saved": false}, function(err, data){
+        var hbsObj = {
             article: data
         };
-        console.log(viewObj);
-        res.render("index", viewObj);
+        console.log(hbsObj);
+        res.render("index", hbsObj);
     });
 });
 
 app.get("/saved", function(req,res){
     db.Article.find({"saved": true}).populate("note").exec(function(err, data){
-        var viewObj = {
-            article: articles
+        var hbsObj = {
+            article: data
         };
-        console.log(viewObj);
-        res.render("saved", viewObj);
+        console.log(hbsObj);
+        res.render("saved", hbsObj);
     });
 });
 
 // SCRAPE
 app.get("/scrape", function(req, res){
-    // Grab body of html with axios
-    axios.get("https://www.nytimes.com/section/nyregion").then(function(response){
-        // Load into cheerio and save it to $ for shorthand selector
-        var $ = cheerio.load(response.data);
-        $("div.story-body").each(function(i, element){
-            // Save an empty result object
-            var result = {};
-            // Add the text and href of every link and save them as properties of result object
-            result.title = $(element).children("h2.headline").text();
-            result.link = $(element).find("a").attr("href");
-            result.summary = $(element).find("p.summary").text();
 
-            // Create new Article using result object from scrabing
+    // Grab body of html with axios
+    axios.get("https://www.nytimes.com/").then(function(response){
+        // Load into cheerio and save it to $ for shorthand selector
+        const $ = cheerio.load(response.data);
+        $("article.css-8atqhb").each(function(i, element){
+            // Save an empty result object
+            var result = {}; 
+            
+            // Add the text and href of every link and save them as properties of result object
+            result.title = $(element).find("h2").text();
+            result.link = "https://www.nytimes.com" + $(element).find("a").attr("href");
+            result.summary = $(element).find("p").text();
+
+            // Create new Article using result object from scraping
             db.Article.create(result).then(function(data){
                 console.log(data);
             }).catch(function(error){
-                return res.json(error);
+                console.log(error);
             })
         });
         // Send message to client
         res.send("Scrape Complete");
     });
-});
-
-// CLEAR UNSAVED
-app.get('/clear', function(req, res){
-    db.Article.remove({"saved": false}, function(err, doc){
-        if (err){
-            console.log(err);
-        }
-        else {
-            console.log("Removed unsaved articles");
-        }
-    });
-    // Redirect to homepage
-    res.redirect('/');
 });
 
 // GET ALL ARTICLES
@@ -104,9 +98,9 @@ app.get("/articles", function(req, res){
 
 // GET ARTICLE BY ID
 app.get("/articles/:id", function(req, res){
-    db.Article.find(
+    db.Article.findOne(
         {
-            _id: req.params.id
+            "_id": req.params.id
         }
     ).populate("note")
     .then(function(dbArticle){
@@ -114,6 +108,19 @@ app.get("/articles/:id", function(req, res){
     }).catch(function(error){
         res.json(error);
     });
+});
+
+// DELETE UNSAVED ARTICLES
+app.get("/clear", function(req, res){
+    db.Article.remove({saved: false}, function(err, doc){
+        if(err){
+            console.log(err);
+        }
+        else{
+            console.log("Deleted Unsaved Articles");
+        }
+    });
+    res.redirect("/");
 });
 
 // SAVE ARTICLE
@@ -152,7 +159,7 @@ app.post("/articles/delete/:id", function(req, res){
 // ADD COMMENT
 app.post("/notes/save/:id", function(req, res){
     // Create new note
-    var newNote = new Note({
+    var newNote = new db.Note({
         body: req.body.text,
         article: req.params.id
     });
@@ -165,8 +172,7 @@ app.post("/notes/save/:id", function(req, res){
             db.Article.findOneAndUpdate(
                 {
                     "_id": req.params.id
-                },
-                {$push: {"note": note}}
+                }, {$push: {"note": note}}
             ).exec(function(error){
                 if (error){
                     res.send(error);
@@ -190,16 +196,15 @@ app.delete("/notes/delete/:note_id/:article_id", function (req, res){
             db.Article.findOneAndUpdate(
                 {
                     "_id": req.params.article_id
-                },
-                {$pull: {"note": req.params.note_id}}
-            ).exec(function (error){
+                }, {$pull: {"note": req.params.note_id}}
+            ).exec(function(error){
                 if (error){
                     res.send(error);
                 }
                 else{
                     res.send("Comment deleted");
                 }
-            })
+            });
         }
     });
 });
